@@ -69,25 +69,41 @@
     </form>
 
     <section id="error-btns">
-      <button>Console Log</button>
-      <button>Console Error</button>
-      <button>Console Count</button>
-      <button>Console Warn</button>
-      <button>Console Assert</button>
-      <button>Console Clear</button>
-      <button>Console Dir</button>
-      <button>Console dirxml</button>
-      <button>Console Group Start</button>
-      <button>Console Group End</button>
-      <button>Console Table</button>
-      <button>Start Timer</button>
-      <button>End Timer</button>
-      <button>Console Trace</button>
-      <button>Trigger a Global Error</button>
+      <button id ="log">Console Log</button>
+      <button id="error">Console Error</button>
+      <button id="count">Console Count</button>
+      <button id="warn">Console Warn</button>
+      <button id="assert">Console Assert</button>
+      <button id="clear">Console Clear</button>
+      <button id="dir">Console Dir</button>
+      <button id="dirxml">Console dirxml</button>
+      <button id="group">Console Group Start</button>
+      <button id="groupEnd">Console Group End</button>
+      <button id="table">Console Table</button>
+      <button id="time">Start Timer</button>
+      <button id="timeEnd">End Timer</button>
+      <button id="trace">Console Trace</button>
+      <button id="global-error">Trigger a Global Error</button>
     </section>
   </main>
 
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
   <script>
+  window.TrackJS && TrackJS.install({ 
+    token: "a77a411e31b843cab15692caf2b34e81"
+    // for more configuration options, see https://docs.trackjs.com
+  });
+  </script>
+
+  
+  <script>
+    class CustomError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = 'CustomError';
+      }
+
+    }
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,13 +111,59 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try {
+        if (operator === '/' && Number(secondNum) === 0) {
+          throw new CustomError("Cannot divide by zero");
+        } else if (isNaN(firstNum) || Number.isNaN(secondNum)) {
+          throw new CustomError("Cannot include anything that is not a number");
+        } 
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      } catch (error) {
+        output.innerHTML = 'Error';
+        console.error(error);
+      } finally {
+        console.log("Calculation attempted");
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
 
+    console.count('Page loaded');
+
     // Start your code here
     // You may move this JS to another file if you wish
+    document.querySelector('#log').addEventListener('click', () => console.log('Logging message'));
+    document.querySelector('#error').addEventListener('click', () => console.error('Error'));
+    document.querySelector('#count').addEventListener('click', () => console.count('Counter'));
+    document.querySelector('#warn').addEventListener('click', () => console.warn('Warning'));
+    document.querySelector('#assert').addEventListener('click', () => console.assert(false, 'Assert failed'));
+    document.querySelector('#clear').addEventListener('click', () => console.clear());
+    document.querySelector('#dir').addEventListener('click', () => console.dir(document.body));
+    document.querySelector('#dirxml').addEventListener('click', () => console.dirxml(document.body));
+    document.querySelector('#group').addEventListener('click', () => {
+      console.group('Group');
+      console.log('Inside group')
+    });
+    document.querySelector('#groupEnd').addEventListener('click', () => console.groupEnd());
+    document.querySelector('#table').addEventListener('click', () => {
+      const data = [
+        { name: 'Adam', age: 20},
+        { name: 'Eve', age: 21 }
+      ];
+      console.table(data);
+    });
+    document.querySelector('#time').addEventListener('click', () => console.time('Timer'));
+    document.querySelector('#timeEnd').addEventListener('click', () => console.timeEnd('Timer'));
+    document.querySelector('#trace').addEventListener('click', () => console.trace('Trace'));
+    document.querySelector('#global-error').addEventListener('click', () => {
+      undefinedFunction();
+    });
+
+    Window.onerror = function (message, source, lineno, colno, error) {
+      console.log('Global error caught', message);
+      return true;
+    };
   </script>
 </body>
 
